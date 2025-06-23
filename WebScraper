@@ -1,0 +1,70 @@
+import java.sql.SQLException;
+import java.util.List;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+
+public class WebScraper {
+
+	public static void main(String[] args) {
+		 WebDriver driver = new ChromeDriver();
+		 DBHelper db = null;
+		 
+		 try {
+			 driver.get("http://books.toscrape.com");
+	         driver.navigate().to("http://books.toscrape.com/catalogue/category/books/fiction_10/index.html"); //just for fiction
+	         db = new DBHelper(); //dbhelper class
+	         
+			 while(true) {
+		           
+	
+		            // Get element with tag name 'div'
+		            //  WebElement element = driver.findElement(By.tagName("div"));
+		            // Get all the elements available with tag name 'p'
+		            //  List<WebElement> elements = element.findElements(By.tagName("p"));
+	
+		            List<WebElement> products = driver.findElements(By.className("product_pod"));
+		            
+		            for (WebElement product : products) {
+		                String name = product.findElement(By.tagName("h3")).getText();
+		                String priceStr = product.findElement(By.className("price_color")).getText(); // e.g., £53.74
+		                double price = Double.parseDouble(priceStr.replace("£", ""));
+		                String availability = product.findElement(By.className("availability")).getText().trim();
+		                db.insertProduct(name, price, availability);
+		                System.out.println("Inserted: " + name);
+		            }
+		            
+		            // Try to find the "next" button
+		            List<WebElement> nextButton = driver.findElements(By.cssSelector("li.next > a")); //next button looks like this: <li class="next"><a href="page-2.html">next</a></li>
+
+		            if (nextButton.isEmpty()) {
+		                // No more pages
+		                break;
+		            } else {
+		                // Click the next page link
+		                String nextUrl = nextButton.get(0).getAttribute("href");
+		                driver.get(nextUrl); // go to the next page
+		            }
+		            
+			 }//close while loop
+	            
+		 } //close try
+		 catch (SQLException e) {
+	            e.printStackTrace();
+	     } 
+		 finally {
+			 try {
+				 if (db != null) db.close(); // ✅ Close DB connection once
+		     } //close try
+			 catch (SQLException e) {
+		            e.printStackTrace();
+		     }
+		     driver.quit();
+			      
+	     } //close finally
+
+	}//close main
+
+}//close class
