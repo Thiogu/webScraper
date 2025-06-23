@@ -1,0 +1,35 @@
+import java.sql.Connection;
+import java.sql.*;
+import java.sql.DriverManager;
+
+public class DBHelper {
+	private static final String URL = "jdbc:mysql://localhost:3306/webscraper?useSSL=false&serverTimezone=UTC";
+    private static final String USER = "root";
+    private static final String PASSWORD = "root123";
+
+    private Connection conn;
+    
+    public DBHelper() throws SQLException {
+        conn = DriverManager.getConnection(URL, USER, PASSWORD);
+    }
+
+    public void insertProduct(String name, double price, String availability) throws SQLException {
+        String sql = "INSERT INTO products (name, price, availability) VALUES (?, ?, ?)";
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        stmt.setString(1, name);
+        stmt.setDouble(2, price);
+        stmt.setString(3, availability);
+        stmt.executeUpdate();
+        stmt.close();
+    }
+//    PreparedStatement:
+//    	You are working with user input in SQL queries (to avoid injection).
+//    	You have queries that run multiple times with different values.
+//    	You want cleaner, more readable code.
+
+
+    public void close() throws SQLException {
+        if (conn != null) conn.close();
+    }
+
+}
